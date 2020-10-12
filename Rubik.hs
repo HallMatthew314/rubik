@@ -1,6 +1,15 @@
 module Rubik where
 
-data Color = Wh | Gr | Re | Bl | Or | Ye deriving (Show)
+import Text.Printf
+
+data Color = Wh | Gr | Re | Bl | Or | Ye deriving (Show, Eq)
+
+-- REVIEW:
+-- I don't actually understand what's happening here, but it works.
+instance PrintfArg Color where
+  formatArg c fmt | fmtChar (vFmt 's' fmt) == 's' =
+    formatString (show c) (fmt { fmtChar = 's', fmtPrecision = Nothing})
+  formatArg _ fmt = errorBadFormat $ fmtChar fmt
 
 -- Each field is a different sticker/square.
 -- The numbers correspond to the following squares on a face:
@@ -47,4 +56,75 @@ baseCube = Cube { up    = plainFace Wh
                 , left  = plainFace Or
                 , down  = plainFace Ye
                 }
+
+-- TODO:
+-- There must be a better way to do this.
+prettyPrintCube :: PrintfType r => Cube -> r
+prettyPrintCube Cube {up=u, front=f, right=r, back=b, left=l, down=d} =
+  printf template
+    -- Up face
+    (s1 u)
+    (s2 u)
+    (s3 u)
+    (s8 u)
+    (s4 u)
+    (s7 u)
+    (s6 u)
+    (s5 u)
+    -- First layer of middle faces (Left, Front, Right, Back)
+    (s1 l)
+    (s2 l)
+    (s3 l)
+    (s1 f)
+    (s2 f)
+    (s3 f)
+    (s1 r)
+    (s2 r)
+    (s3 r)
+    (s1 b)
+    (s2 b)
+    (s3 b)
+    -- Second layer of middle faces
+    (s8 l)
+    (s4 l)
+    (s8 f)
+    (s4 f)
+    (s8 r)
+    (s4 r)
+    (s8 b)
+    (s4 b)
+    -- Third Layer of middle faces
+    (s7 l)
+    (s6 l)
+    (s5 l)
+    (s7 f)
+    (s6 f)
+    (s5 f)
+    (s7 r)
+    (s6 r)
+    (s5 r)
+    (s7 b)
+    (s6 b)
+    (s5 b)
+    -- Down face
+    (s1 d)
+    (s2 d)
+    (s3 d)
+    (s8 d)
+    (s4 d)
+    (s7 d)
+    (s6 d)
+    (s5 d)
+  where
+    template = unlines
+            [ "       %s%s%s"
+            , "       %s--%s"
+            , "       %s%s%s\n"
+            , "%s%s%s %s%s%s %s%s%s %s%s%s"
+            , "%s--%s %s--%s %s--%s %s--%s"
+            , "%s%s%s %s%s%s %s%s%s %s%s%s\n"
+            , "       %s%s%s"
+            , "       %s--%s"
+            , "       %s%s%s"
+            ]
 
