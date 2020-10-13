@@ -2,6 +2,7 @@ module Rubik where
 
 import qualified Data.Map.Strict as M
 import Text.Printf
+import Text.Read (readMaybe)
 
 data Color = Wh | Gr | Re | Bl | Or | Ye deriving (Show, Eq)
 
@@ -60,6 +61,12 @@ data Move = U | U2 | U'
           | B | B2 | B'
           | L | L2 | L'
           | D | D2 | D'
+          deriving (Show, Read)
+
+type Algorithm = [Move]
+
+parseAlgorithm :: String -> Algorithm
+parseAlgorithm = map read . words
 
 -- Effects of one clockwise rotation:
 
@@ -69,11 +76,6 @@ data Move = U | U2 | U'
 -- CA EA CB          CD ED CA
 -- ED    EB          EC    EA
 -- CD EC CC          CC EB CB
-baseRotateFace :: Face -> Face
-baseRotateFace f = faceFromList cs'
-  where
-    cs  = M.elems f
-    cs' = drop 6 cs ++ take 6 cs
 
 -- Side squares rotate as follows:
 
@@ -125,6 +127,12 @@ baseRotateFace f = faceFromList cs'
 type SideSpecs = (RSpec,RSpec,RSpec,RSpec)
 type RSpec = (Face,[Square])
 type SCPair = (Square,Color)
+
+baseRotateFace :: Face -> Face
+baseRotateFace f = faceFromList cs'
+  where
+    cs  = M.elems f
+    cs' = drop 6 cs ++ take 6 cs
 
 baseRotateSides :: SideSpecs -> (Face,Face,Face,Face)
 baseRotateSides ((a,[]),(b,[]),(c,[]),(d,[])) = (a,b,c,d)
@@ -205,6 +213,32 @@ baseRotateL c = c {left=l',up=u',front=f',down=d',back=b'}
                                            , (down  c,[CA,ED,CD])
                                            , (back  c,[CC,EB,CB])
                                            )
+
+turn :: Move -> Cube -> Cube
+turn U  = baseRotateU
+turn U2 = baseRotateU . baseRotateU
+turn U' = baseRotateU . baseRotateU . baseRotateU
+turn F  = baseRotateF
+turn F2 = baseRotateF . baseRotateF
+turn F' = baseRotateF . baseRotateF . baseRotateF
+turn R  = baseRotateR
+turn R2 = baseRotateR . baseRotateR
+turn R' = baseRotateR . baseRotateR . baseRotateR
+turn B  = baseRotateB
+turn B2 = baseRotateB . baseRotateB
+turn B' = baseRotateB . baseRotateB . baseRotateB
+turn L  = baseRotateL
+turn L2 = baseRotateL . baseRotateL
+turn L' = baseRotateL . baseRotateL . baseRotateL
+turn D  = baseRotateD
+turn D2 = baseRotateD . baseRotateD
+turn D' = baseRotateD . baseRotateD . baseRotateD
+
+applyAlgorithm :: Algorithm -> Cube -> Cube
+applyAlgorithm a c = foldl (flip turn) c a
+
+aperm = parseAlgorithm "F R U' R' U' R U R' F' R U R' U' R' F R F'"
+testalg = [U2, F2, R2, B2, L2, D2]
 
 -- TODO:
 -- There must be a better way to do this.
