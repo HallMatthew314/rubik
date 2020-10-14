@@ -1,4 +1,6 @@
-module Rubik.Utils where
+module Rubik.Utils
+( prettyPrintCube
+) where
 
 import Rubik.Types
 import Text.Printf (PrintfType, printf)

@@ -1,4 +1,7 @@
-module Rubik.Rotations where
+module Rubik.Rotations
+( turn
+, applyAlgorithm
+) where
 
 import Rubik.Types
 

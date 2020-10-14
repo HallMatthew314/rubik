@@ -1,7 +1,28 @@
-module Rubik.Types where
+module Rubik.Types
+( Color(..)
+, Square(..)
+, Face
+, Cube(..)
+, Move(..)
+, Algorithm
+, plainFace
+, faceFromList
+, getColor
+, setColor
+, faceColors
+, baseCube
+, parseAlgorithm
+) where
 
-import Text.Printf
 import qualified Data.Map.Strict as M
+import Text.Printf ( PrintfArg
+                   , formatArg
+                   , fmtChar
+                   , vFmt
+                   , formatString
+                   , fmtPrecision
+                   , errorBadFormat
+                   )
 
 data Color = Wh | Gr | Re | Bl | Or | Ye deriving (Show, Eq)
 
