@@ -4,6 +4,7 @@ module Rubik.Types
 , Face
 , Cube(..)
 , Move(..)
+, Rotation
 , Algorithm
 , plainFace
 , faceFromList
@@ -11,6 +12,8 @@ module Rubik.Types
 , setColor
 , faceColors
 , baseCube
+, isNormal
+, isRotation
 , parseAlgorithm
 ) where
 
@@ -83,15 +86,26 @@ baseCube = Cube { up    = plainFace Wh
                 , down  = plainFace Ye
                 }
 
--- Variants will be added after basic turn function's implementation.
--- Rotations/slices will be added at a later date.
+          -- Normal moves
 data Move = U | U2 | U'
           | F | F2 | F'
           | R | R2 | R'
           | B | B2 | B'
           | L | L2 | L'
           | D | D2 | D'
-          deriving (Show, Read)
+          -- Rotations (Translators of moves)
+          | X | X2 | X'
+          | Y | Y2 | Y'
+          | Z | Z2 | Z'
+          deriving (Eq, Ord, Show, Read)
+
+type Rotation = Move
+
+isNormal :: Move -> Bool
+isNormal m = elem m [U,U2,U',F,F2,F',R,R2,R',B,B2,B',L,L2,L',D,D2,D']
+
+isRotation :: Move -> Bool
+isRotation m = elem m [X,X2,X',Y,Y2,Y',Z,Z2,Z']
 
 -- An algorithm is just a sequence of moves.
 type Algorithm = [Move]

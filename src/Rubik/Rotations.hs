@@ -1,9 +1,12 @@
 module Rubik.Rotations
 ( turn
 , applyAlgorithm
+, rotateTurn
+, fixPerspective
 ) where
 
 import Rubik.Types
+import Data.Map.Strict (fromList, findWithDefault)
 
 -- Effects of one clockwise rotation:
 
@@ -169,7 +172,99 @@ turn L' = baseRotateL . baseRotateL . baseRotateL
 turn D  = baseRotateD
 turn D2 = baseRotateD . baseRotateD
 turn D' = baseRotateD . baseRotateD . baseRotateD
+turn m  = error $ "Not implemented: " ++ show m
 
 applyAlgorithm :: Algorithm -> Cube -> Cube
-applyAlgorithm a c = foldl (flip turn) c a
+applyAlgorithm a c = foldl (flip turn) c a'
+  where
+    a' = fixPerspective a
+
+-- Takes an algorithm and returns a modified version in which
+-- moves that effect the center squares are replaced with their equivalents.
+-- e.g.
+-- [Y' R F' R' F X R U R' U'] -> [F L' F' L F L F' L']
+fixPerspective :: Algorithm -> Algorithm
+fixPerspective = foldr f []
+  where
+    f m
+      | isNormal m   = (m:)
+      | isRotation m = map (rotateTurn m)
+      | otherwise    = error "You forgot the combo moves, dummy"
+
+turnMapX = fromList [ (U, F)
+                    , (U2,F2)
+                    , (U',F')
+
+                    , (D, B)
+                    , (D2,B2)
+                    , (D',B')
+
+                    , (F, D)
+                    , (F2,D2)
+                    , (F',D')
+
+                    , (B, U)
+                    , (B2,U2)
+                    , (B',U')
+                    ]
+
+turnMapY = fromList [ (F, R)
+                    , (F2,R2)
+                    , (F',R')
+
+                    , (B, L)
+                    , (B2,L2)
+                    , (B',L')
+
+                    , (R, B)
+                    , (R2,B2)
+                    , (R',B')
+
+                    , (L, F)
+                    , (L2,F2)
+                    , (L',F')
+                    ]
+
+turnMapZ = fromList [ (U, L)
+                    , (U2,L2)
+                    , (U',L')
+
+                    , (D, R)
+                    , (D2,R2)
+                    , (D',R')
+
+                    , (R, U)
+                    , (R2,U2)
+                    , (R',U')
+
+                    , (L, D)
+                    , (L2,D2)
+                    , (L',D')
+                    ]
+
+-- Accepts a rotation (X, Y, Z) and a normal turn (U, D, R, L, F, B)
+-- and returns what the move would actually be without the rotation.
+-- e.g.
+-- Y' R -> F
+-- X  B -> U
+rotateTurn :: Rotation -> Move -> Move
+
+rotateTurn r  _ | not $ isRotation r = 
+  error "Rotation move must be variant on X, Y, Z"
+rotateTurn _  m | isRotation m =
+  error "Cannot rotate a rotation"
+
+-- Query the map for the corresponding turn.
+-- If the turn is not in the map, it is not affected by the rotation.
+rotateTurn X  m = findWithDefault m m turnMapX
+rotateTurn X2 m = rotateTurn X $ rotateTurn X m
+rotateTurn X' m = rotateTurn X $ rotateTurn X $ rotateTurn X m
+
+rotateTurn Y  m = findWithDefault m m turnMapY
+rotateTurn Y2 m = rotateTurn Y $ rotateTurn Y m
+rotateTurn Y' m = rotateTurn Y $ rotateTurn Y $ rotateTurn Y m
+
+rotateTurn Z  m = findWithDefault m m turnMapZ
+rotateTurn Z2 m = rotateTurn Z $ rotateTurn Z m
+rotateTurn Z' m = rotateTurn Z $ rotateTurn Z $ rotateTurn Z m
 
