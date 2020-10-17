@@ -96,10 +96,10 @@ baseCube = Cube { up    = plainFace Wh
 data MoveFace = R | L | U | D | F | B
               | X | Y | Z
               | M | E | S
-              deriving (Show, Read)
+              deriving (Show, Read, Eq, Ord)
 
 -- Normal turn, double turn, inverse turn.
-data MoveAmount = A1 | A2 | A3
+data MoveAmount = A1 | A2 | A3 deriving (Eq)
 
 instance Show MoveAmount where
   show A1 = ""
