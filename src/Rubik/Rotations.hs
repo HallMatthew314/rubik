@@ -167,10 +167,9 @@ turn (Move f t) cube = (foldl1 (.) rs) cube
     rs = replicate (turnTimes t) (b f)
 
 applyAlgorithm :: Algorithm -> Cube -> Cube
-applyAlgorithm = undefined
---applyAlgorithm a c = foldl (flip turn) c a'
---  where
---    a' = fixPerspective a
+applyAlgorithm a c = foldl (flip turn) c a'
+  where
+    a' = fixPerspective a
 
 -- Takes an algorithm and returns a modified version in which
 -- moves that effect the center squares are replaced with their equivalents.
