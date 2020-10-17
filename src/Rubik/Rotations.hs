@@ -153,36 +153,30 @@ baseRotateL c = c {left=l',up=u',front=f',down=d',back=b'}
                                            , (down  c,[CA,ED,CD])
                                            , (back  c,[CC,EB,CB])
                                            )
+
 turn :: Move -> Cube -> Cube
-turn U  = baseRotateU
-turn U2 = baseRotateU . baseRotateU
-turn U' = baseRotateU . baseRotateU . baseRotateU
-turn F  = baseRotateF
-turn F2 = baseRotateF . baseRotateF
-turn F' = baseRotateF . baseRotateF . baseRotateF
-turn R  = baseRotateR
-turn R2 = baseRotateR . baseRotateR
-turn R' = baseRotateR . baseRotateR . baseRotateR
-turn B  = baseRotateB
-turn B2 = baseRotateB . baseRotateB
-turn B' = baseRotateB . baseRotateB . baseRotateB
-turn L  = baseRotateL
-turn L2 = baseRotateL . baseRotateL
-turn L' = baseRotateL . baseRotateL . baseRotateL
-turn D  = baseRotateD
-turn D2 = baseRotateD . baseRotateD
-turn D' = baseRotateD . baseRotateD . baseRotateD
-turn m  = error $ "Not implemented: " ++ show m
+turn (Move f t) cube = (foldl1 (.) rs) cube
+  where
+    b R = (baseRotateR)
+    b L = (baseRotateL)
+    b U = (baseRotateU)
+    b D = (baseRotateD)
+    b F = (baseRotateF)
+    b B = (baseRotateB)
+    b _ = error "Got non-normal move"
+    rs = replicate (turnTimes t) (b f)
 
 applyAlgorithm :: Algorithm -> Cube -> Cube
-applyAlgorithm a c = foldl (flip turn) c a'
-  where
-    a' = fixPerspective a
+applyAlgorithm = undefined
+--applyAlgorithm a c = foldl (flip turn) c a'
+--  where
+--    a' = fixPerspective a
 
 -- Takes an algorithm and returns a modified version in which
 -- moves that effect the center squares are replaced with their equivalents.
 -- e.g.
 -- [Y' R F' R' F X R U R' U'] -> [F L' F' L F L F' L']
+{-
 fixPerspective :: Algorithm -> Algorithm
 fixPerspective = foldr f []
   where
@@ -267,4 +261,8 @@ rotateTurn Y' m = rotateTurn Y $ rotateTurn Y $ rotateTurn Y m
 rotateTurn Z  m = findWithDefault m m turnMapZ
 rotateTurn Z2 m = rotateTurn Z $ rotateTurn Z m
 rotateTurn Z' m = rotateTurn Z $ rotateTurn Z $ rotateTurn Z m
+-}
+
+rotateTurn = undefined
+fixPerspective = undefined
 
