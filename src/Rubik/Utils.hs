@@ -1,9 +1,19 @@
 module Rubik.Utils
 ( prettyPrintCube
+, invertMove
+, invertAlgorithm
 ) where
 
 import Rubik.Types
 import Text.Printf (PrintfType, printf)
+
+invertMove :: Move -> Move
+invertMove (Move f A1) = Move f A3
+invertMove (Move f A3) = Move f A1
+invertMove m           = m
+
+invertAlgorithm :: Algorithm -> Algorithm
+invertAlgorithm = foldl (\acc m -> invertMove m:acc) []
 
 -- TODO:
 -- There must be a better way to do this.
