@@ -22,6 +22,7 @@ module Rubik.Types
 ) where
 
 import qualified Data.Map.Strict as M
+import Data.Maybe (isNothing)
 import Text.Read (readMaybe)
 import Text.Printf ( PrintfArg
                    , formatArg
@@ -123,6 +124,7 @@ instance Read Move where
     where
       trim = dropWhile (==' ')
       p []          = []
+      p (x:_) | isNothing $ (readMaybe [x] :: Maybe MoveFace) = []
       p (x:'2':xs)  = [(Move (read [x]) A2, xs)]
       p (x:'\'':xs) = [(Move (read [x]) A3, xs)]
       p (x:xs)      = [(Move (read [x]) A1, xs)]
@@ -153,6 +155,8 @@ isCombined _          = False
 -- An algorithm is just a sequence of moves.
 type Algorithm = [Move]
 
-parseAlgorithm :: String -> Algorithm
-parseAlgorithm = map read . words
+-- Returns nothing if there are any invalid moves in the string.
+-- Otherwise returns Just the list of moves.
+parseAlgorithm :: String -> Maybe Algorithm
+parseAlgorithm = sequence . map readMaybe . words
 

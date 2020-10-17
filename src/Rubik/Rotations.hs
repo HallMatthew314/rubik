@@ -163,7 +163,7 @@ turn (Move f t) cube = (foldl1 (.) rs) cube
     b D = (baseRotateD)
     b F = (baseRotateF)
     b B = (baseRotateB)
-    b _ = error "Got non-normal move"
+    b _ = error "Turn only allows moves in outer block turn metric"
     rs = replicate (turnTimes t) (b f)
 
 applyAlgorithm :: Algorithm -> Cube -> Cube
