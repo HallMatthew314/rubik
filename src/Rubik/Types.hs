@@ -22,7 +22,7 @@ module Rubik.Types
 ) where
 
 import qualified Data.Map.Strict as M
-import Data.Maybe (isNothing)
+import Data.Maybe (fromJust, isJust, isNothing)
 import Text.Read (readMaybe)
 import Text.Printf ( PrintfArg
                    , formatArg
@@ -120,14 +120,17 @@ instance Show Move where
 -- REVIEW:
 -- Probably a nicer way to do this but it should be okay for now.
 instance Read Move where
-  readsPrec _ s = p $ trim s
+  readsPrec _ s = p $ dropWhile (==' ') s
     where
-      trim = dropWhile (==' ')
-      p []          = []
-      p (x:_) | isNothing $ (readMaybe [x] :: Maybe MoveFace) = []
-      p (x:'2':xs)  = [(Move (read [x]) A2, xs)]
-      p (x:'\'':xs) = [(Move (read [x]) A3, xs)]
-      p (x:xs)      = [(Move (read [x]) A1, xs)]
+      p (x:xs) | isJust m =
+        case xs of
+          ('2':rest)  -> [(Move m' A2, rest)]
+          ('\'':rest) -> [(Move m' A3, rest)]
+          rest        -> [(Move m' A1, rest)]
+        where
+          m  = readMaybe [x] :: Maybe MoveFace
+          m' = fromJust m
+      p _ = []
 
 type Rotation = Move
 
