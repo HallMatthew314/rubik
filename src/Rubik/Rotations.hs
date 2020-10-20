@@ -3,6 +3,7 @@ module Rubik.Rotations
 , applyAlgorithm
 , rotateTurn
 , fixPerspective
+, asOBTM
 ) where
 
 import Rubik.Types
@@ -220,4 +221,10 @@ rotateTurn (Move r ra) move@(Move m ma)
   | ra == A3 = rotateTurn (Move r A2) $ rotateTurn (Move r A1) move
   where
     m' = findWithDefault m m $ turnMap r 
+
+asOBTM :: Algorithm -> Algorithm
+asOBTM [] = []
+asOBTM (x:xs)
+  | isCombined x = decomposeCombined x ++ asOBTM xs
+  | otherwise    = x:asOBTM xs
 
