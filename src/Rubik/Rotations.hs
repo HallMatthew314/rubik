@@ -170,7 +170,7 @@ turn (Move f t) cube = (foldl1 (.) rs) cube
 applyAlgorithm :: Algorithm -> Cube -> Cube
 applyAlgorithm a c = foldl (flip turn) c a'
   where
-    a' = fixPerspective a
+    a' = fixPerspective $ asOBTM a
 
 -- Takes an algorithm and returns a modified version in which
 -- moves that effect the center squares are replaced with their equivalents.
