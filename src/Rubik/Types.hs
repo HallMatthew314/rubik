@@ -6,7 +6,9 @@ module Rubik.Types
 , MoveAmount(..)
 , MoveFace(..)
 , Move(..)
+, Normal
 , Rotation
+, Combined
 , Algorithm
 , plainFace
 , faceFromList
@@ -103,7 +105,7 @@ data MoveFace = R | L | U | D | F | B
               deriving (Show, Read, Eq, Ord)
 
 -- Normal turn, double turn, inverse turn.
-data MoveAmount = A1 | A2 | A3 deriving (Eq)
+data MoveAmount = A1 | A2 | A3 deriving (Eq, Ord)
 
 instance Show MoveAmount where
   show A1 = ""
@@ -115,7 +117,7 @@ turnTimes A1 = 1
 turnTimes A2 = 2
 turnTimes A3 = 3
 
-data Move = Move MoveFace MoveAmount
+data Move = Move MoveFace MoveAmount deriving (Ord, Eq)
 
 instance Show Move where
   show (Move f a) = show f ++ show a
@@ -135,6 +137,7 @@ instance Read Move where
           m' = fromJust m
       p _ = []
 
+type Normal   = Move
 type Rotation = Move
 type Combined = Move
 

@@ -165,7 +165,7 @@ turn (Move f t) cube = (foldl1 (.) rs) cube
     b F = (baseRotateF)
     b B = (baseRotateB)
     b _ = error "Turn only allows moves in outer block turn metric"
-    rs = replicate (turnTimes t) (b f)
+    rs  = replicate (turnTimes t) (b f)
 
 applyAlgorithm :: Algorithm -> Cube -> Cube
 applyAlgorithm a c = foldl (flip turn) c a'
@@ -179,10 +179,11 @@ applyAlgorithm a c = foldl (flip turn) c a'
 fixPerspective :: Algorithm -> Algorithm
 fixPerspective = foldr f []
   where
-    f m | isNormal m   = (m:)
-        | isRotation m = map (rotateTurn m)
-        | otherwise    = error "You forgot the combo moves, dummy"
+    f m | isRotation m = map (rotateTurn m)
+        | otherwise    = (m:) 
 
+-- REVIEW
+-- This probably needs a refactor, maybe a cycling list of moves/faces?
 turnMap X = fromList [ (U, F)
                      , (F, D)
                      , (D, B)
@@ -201,26 +202,53 @@ turnMap Z = fromList [ (U, L)
                      , (L, D)
                      ]
 
--- Accepts a rotation (X, Y, Z) and a normal turn (U, D, R, L, F, B)
+baseSliceTurnMap a b = fromList [ (Move a A1, Move b A1)
+                                , (Move b A1, Move a A3)
+                                , (Move a A3, Move b A3)
+                                , (Move b A3, Move a A1)
+                                , (Move b A2, Move a A2)
+                                , (Move a A2, Move b A2)
+                                ]
+
+sliceTurnMap X = baseSliceTurnMap S E
+sliceTurnMap Y = baseSliceTurnMap S M
+sliceTurnMap Z = baseSliceTurnMap M E
+
+-- Accepts a rotation (X, Y, Z) and a normal or combined move
 -- and returns what the move would actually be without the rotation.
 -- e.g.
--- Y' R -> F
--- X  B -> U
+-- Y' R  -> F
+-- X  B  -> U
+-- Z  E' -> M
 rotateTurn :: Rotation -> Move -> Move
-
 rotateTurn r  _ | not $ isRotation r = 
   error "Rotation move must be variant on X, Y, Z"
 rotateTurn _  m | isRotation m =
-  error "Cannot rotate a rotation"
+  error "Cannot rotate a rotation" -- for now
+rotateTurn r m
+  | isNormal m   = rotateNormal r m
+  | isCombined m = rotateCombined r m
 
 -- Query a map for the corresponding turn.
 -- If the turn is not in the map, it is not affected by the rotation.
-rotateTurn (Move r ra) move@(Move m ma)
+rotateNormal :: Rotation -> Normal -> Normal
+rotateNormal (Move r ra) move@(Move m ma)
   | ra == A1 = Move m' ma
-  | ra == A2 = rotateTurn (Move r A1) $ rotateTurn (Move r A1) move
-  | ra == A3 = rotateTurn (Move r A2) $ rotateTurn (Move r A1) move
+  | ra == A2 = rotateNormal (Move r A1) $ rotateNormal (Move r A1) move
+  | ra == A3 = rotateNormal (Move r A2) $ rotateNormal (Move r A1) move
   where
     m' = findWithDefault m m $ turnMap r 
+
+rotateCombined :: Rotation -> Combined -> Combined
+rotateCombined (Move X _) m@(Move M _) = m
+rotateCombined (Move Y _) m@(Move E _) = m
+rotateCombined (Move Z _) m@(Move S _) = m
+rotateCombined rot@(Move r ra) move@(Move m ma)
+  | ra == A1 = m'
+  | ra == A2 = rotateCombined (Move r A1) $ rotateCombined (Move r A1) move
+  | ra == A3 = rotateCombined (Move r A2) $ rotateCombined (Move r A1) move
+  where
+    m' = findWithDefault move move $ sliceTurnMap r
 
 asOBTM :: Algorithm -> Algorithm
 asOBTM [] = []
