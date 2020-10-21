@@ -21,6 +21,7 @@ module Rubik.Types
 , isRotation
 , isCombined
 , parseAlgorithm
+, parseAlgorithmMaybe
 , invertMove
 , invertAlgorithm
 , decomposeCombined
@@ -167,8 +168,13 @@ type Algorithm = [Move]
 
 -- Returns nothing if there are any invalid moves in the string.
 -- Otherwise returns Just the list of moves.
-parseAlgorithm :: String -> Maybe Algorithm
-parseAlgorithm = sequence . map readMaybe . words
+parseAlgorithmMaybe :: String -> Maybe Algorithm
+parseAlgorithmMaybe = sequence . map readMaybe . words
+
+parseAlgorithm :: String -> Algorithm
+parseAlgorithm s = case parseAlgorithmMaybe s of
+  (Just a) -> a
+  Nothing  -> error $ "Unable to parse algorithm: " ++ s
 
 invertMove :: Move -> Move
 invertMove (Move f A1) = Move f A3
