@@ -6,7 +6,9 @@ module Rubik.Types
 , MoveAmount(..)
 , MoveFace(..)
 , Move(..)
+, Normal
 , Rotation
+, Combined
 , Algorithm
 , plainFace
 , faceFromList
@@ -19,6 +21,9 @@ module Rubik.Types
 , isRotation
 , isCombined
 , parseAlgorithm
+, invertMove
+, invertAlgorithm
+, decomposeCombined
 ) where
 
 import qualified Data.Map.Strict as M
@@ -100,7 +105,7 @@ data MoveFace = R | L | U | D | F | B
               deriving (Show, Read, Eq, Ord)
 
 -- Normal turn, double turn, inverse turn.
-data MoveAmount = A1 | A2 | A3 deriving (Eq)
+data MoveAmount = A1 | A2 | A3 deriving (Eq, Ord)
 
 instance Show MoveAmount where
   show A1 = ""
@@ -112,7 +117,7 @@ turnTimes A1 = 1
 turnTimes A2 = 2
 turnTimes A3 = 3
 
-data Move = Move MoveFace MoveAmount
+data Move = Move MoveFace MoveAmount deriving (Ord, Eq)
 
 instance Show Move where
   show (Move f a) = show f ++ show a
@@ -132,7 +137,9 @@ instance Read Move where
           m' = fromJust m
       p _ = []
 
+type Normal   = Move
 type Rotation = Move
+type Combined = Move
 
 isNormal :: Move -> Bool
 isNormal (Move U _) = True
@@ -162,4 +169,24 @@ type Algorithm = [Move]
 -- Otherwise returns Just the list of moves.
 parseAlgorithm :: String -> Maybe Algorithm
 parseAlgorithm = sequence . map readMaybe . words
+
+invertMove :: Move -> Move
+invertMove (Move f A1) = Move f A3
+invertMove (Move f A3) = Move f A1
+invertMove m           = m 
+
+invertAlgorithm :: Algorithm -> Algorithm
+invertAlgorithm = foldl (\acc m -> invertMove m:acc) []
+
+-- Accepts a variant of M, E or S and returns its OBTM equivalent.
+decomposeCombined :: Combined -> Algorithm
+decomposeCombined m@(Move f d)
+  | isCombined m = [invertMove r, a, invertMove b]
+  | otherwise    = error "Provided move was not a variant of M, E or S"
+  where
+    (r,a,b) = (Move r' d, Move a' d, Move b' d)
+    (r',a',b') = case f of
+      M -> (X,R,L)
+      E -> (Y,U,D)
+      S -> (Z,F,B)
 
