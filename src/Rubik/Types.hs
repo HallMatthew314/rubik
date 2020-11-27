@@ -22,6 +22,7 @@ module Rubik.Types
 , isCombined
 , parseAlgorithm
 , parseAlgorithmMaybe
+, parseAlgorithmEither
 , invertMove
 , invertAlgorithm
 , decomposeCombined
@@ -166,15 +167,23 @@ isCombined _          = False
 -- An algorithm is just a sequence of moves.
 type Algorithm = [Move]
 
--- Returns nothing if there are any invalid moves in the string.
+-- Returns Nothing if there are any invalid moves in the string.
 -- Otherwise returns Just the list of moves.
 parseAlgorithmMaybe :: String -> Maybe Algorithm
 parseAlgorithmMaybe = sequence . map readMaybe . words
 
+-- Returns Left error message if there are any invalid moves in the string
+-- Otherwise returns Right the list of moves
+parseAlgorithmEither :: String -> Either String Algorithm
+parseAlgorithmEither s = maybe err Right may
+  where
+    may = parseAlgorithmMaybe s
+    err = Left $ "Unable to parse: " ++ s
+
+-- Unsafe parse function, should be used when parsing pre-defined
+-- strings, not for live input.
 parseAlgorithm :: String -> Algorithm
-parseAlgorithm s = case parseAlgorithmMaybe s of
-  (Just a) -> a
-  Nothing  -> error $ "Unable to parse algorithm: " ++ s
+parseAlgorithm = either error id . parseAlgorithmEither 
 
 invertMove :: Move -> Move
 invertMove (Move f A1) = Move f A3
